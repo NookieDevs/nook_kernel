@@ -5944,7 +5944,7 @@ EXPORT_SYMBOL(wait_for_completion_killable);
 bool try_wait_for_completion(struct completion *x)
 {
 	unsigned long flags;
-  int ret = 1;
+	int ret = 1;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
 	if (!x->done)
@@ -5967,7 +5967,7 @@ EXPORT_SYMBOL(try_wait_for_completion);
 bool completion_done(struct completion *x)
 {
 	unsigned long flags;
-  int ret = 1;
+	int ret = 1;
 
 	spin_lock_irqsave(&x->wait.lock, flags);
 	if (!x->done)
