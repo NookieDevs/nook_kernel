@@ -758,10 +758,6 @@ static void sierra_indat_callback(struct urb *urb)
 				tty_flip_buffer_push(tty);
 
 				tty_kref_put(tty);
-				/* tty invalid after this point */
-				/* rx'd bytes */
-				atomic_add(urb->actual_length,
-				&intfdata->stats.rx_bytes);
 				usb_serial_debug_data(debug, &port->dev,
 					__func__, urb->actual_length, data);
 			}
