@@ -1072,7 +1072,9 @@ void mmc_rescan(struct work_struct *work)
 		container_of(work, struct mmc_host, detect.work);
 	u32 ocr;
 	int err;
+
 	int extend_wakelock = 0;
+
 	unsigned long flags;
 
 	spin_lock_irqsave(&host->lock, flags);
@@ -1312,19 +1314,6 @@ int mmc_suspend_host(struct mmc_host *host, pm_message_t state)
 	if (host->bus_ops && !host->bus_dead) {
 		if (host->bus_ops->suspend)
 			err = host->bus_ops->suspend(host);
-		if (err == -ENOSYS || !host->bus_ops->resume) {
-			/*
-			 * We simply "remove" the card in this case.
-			 * It will be redetected on resume.
-			 */
-			if (host->bus_ops->remove)
-				host->bus_ops->remove(host);
-			mmc_claim_host(host);
-			mmc_detach_bus(host);
-			mmc_release_host(host);
-			host->pm_flags = 0;
-			err = 0;
-		}
 	}
 	mmc_bus_put(host);
 
@@ -1402,7 +1391,7 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 
 		mmc_detach_bus(host);
 		mmc_release_host(host);
-		host->pm_flags = 0;
+
 		break;
 
 	case PM_POST_SUSPEND:
@@ -1417,22 +1406,7 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 
 	return 0;
 }
-#endif
 
-#ifdef CONFIG_MMC_EMBEDDED_SDIO
-void mmc_set_embedded_sdio_data(struct mmc_host *host,
-				struct sdio_cis *cis,
-				struct sdio_cccr *cccr,
-				struct sdio_embedded_func *funcs,
-				int num_funcs)
-{
-	host->embedded_sdio_data.cis = cis;
-	host->embedded_sdio_data.cccr = cccr;
-	host->embedded_sdio_data.funcs = funcs;
-	host->embedded_sdio_data.num_funcs = num_funcs;
-}
-
-EXPORT_SYMBOL(mmc_set_embedded_sdio_data);
 #endif
 
 static int __init mmc_init(void)
