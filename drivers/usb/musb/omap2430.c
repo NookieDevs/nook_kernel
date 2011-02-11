@@ -668,6 +668,8 @@ int musb_platform_exit(struct musb *musb)
 {
 	struct otg_transceiver *x = otg_get_transceiver();
 
+	del_timer_sync(&musb_idle_timer);
+
 	omap_vbus_power(musb, 0 /*off*/, 1);
 
 	musb_platform_suspend(musb);
