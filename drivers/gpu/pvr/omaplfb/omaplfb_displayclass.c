@@ -1267,12 +1267,12 @@ static OMAPLFB_ERROR OMAPLFBInitFBDev(OMAPLFB_DEVINFO *psDevInfo)
 	{
 		printk(KERN_INFO DRIVER_PREFIX ": %s: Device %u: Unknown FB format\n", __FUNCTION__, uiFBDevID);
 	}
+	
+	psDevInfo->sFBInfo.ulPhysicalWidthmm = 158.75;
+		//((int)psLINFBInfo->var.width  > 0) ? psLINFBInfo->var.width  : 90;
 
-	psDevInfo->sFBInfo.ulPhysicalWidthmm =
-		((int)psLINFBInfo->var.width  > 0) ? psLINFBInfo->var.width  : 90;
-
-	psDevInfo->sFBInfo.ulPhysicalHeightmm =
-		((int)psLINFBInfo->var.height > 0) ? psLINFBInfo->var.height : 54;
+	psDevInfo->sFBInfo.ulPhysicalHeightmm = 270.933333333;
+		//((int)psLINFBInfo->var.height > 0) ? psLINFBInfo->var.height : 54;
 
 	
 	psDevInfo->sFBInfo.sSysAddr.uiAddr = psPVRFBInfo->sSysAddr.uiAddr;
