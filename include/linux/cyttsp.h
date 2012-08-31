@@ -327,7 +327,7 @@
 #define CY_NUM_ST_TCH_ID		2
 
 /* maximum number of concurrent MT track IDs */
-#define CY_NUM_MT_TCH_ID		4
+#define CY_NUM_MT_TCH_ID		2 //4
 
 /* maximum number of track IDs */
 #define CY_NUM_TRK_ID			16

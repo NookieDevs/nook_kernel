@@ -307,7 +307,8 @@ void cyttsp_xy_worker(struct work_struct *work)
 	u8 id, tilt, rev_x, rev_y;
 	u8 i, loc;
 	u8 prv_tch;		/* number of previous touches */
-	u8 cur_tch;	/* number of current touches */
+	u8 cur_tch;		/* number of current touches */
+	u8 active_count = 0;
 	u16 tmp_trk[CY_NUM_TRK_ID];
 	u16 snd_trk[CY_NUM_TRK_ID];
 	u16 cur_trk[CY_NUM_TRK_ID];
@@ -491,13 +492,13 @@ void cyttsp_xy_worker(struct work_struct *work)
 			sizeof(struct cyttsp_gen3_xydata_t));
 	}
 
-
-
 	/* clear current active track ID array and count previous touches */
 	for (id = 0, prv_tch = CY_NTCH;
 		id < CY_NUM_TRK_ID; id++) {
 		cur_trk[id] = CY_NTCH;
 		prv_tch += ts->act_trk[id];
+		if (ts->act_trk[id] != 0)
+			active_count++;
 	}
 
 	/* send no events if no previous touches and no new touches */
@@ -505,6 +506,14 @@ void cyttsp_xy_worker(struct work_struct *work)
 		((cur_tch == CY_NTCH) ||
 		(cur_tch > CY_NUM_MT_TCH_ID))) {
 		goto exit_xy_worker;
+	}
+
+	/* if active track ID array is set to one on anything other than act_trk[1]
+	   then reset act_trk[1] back to one and clear active track ID */
+	if (ts->act_trk[1] == 0 && active_count == 1) {
+		ts->act_trk[1] = 1;
+		for (id = 2; id < CY_NUM_TRK_ID - 2; id++)
+			ts->act_trk[id] = 0;
 	}
 
 	cyttsp_debug("prev=%d  curr=%d\n", prv_tch, cur_tch);
