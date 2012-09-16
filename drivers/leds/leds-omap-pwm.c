@@ -13,7 +13,6 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/err.h>
-#include <linux/earlysuspend.h>
 #include <linux/platform_device.h>
 #include <linux/leds.h>
 #include <linux/ctype.h>
@@ -22,11 +21,6 @@
 #include <asm/delay.h>
 #include <plat/board.h>
 #include <mach/dmtimer.h>
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void omap_pwm_led_early_suspend(struct early_suspend *handler);
-static void omap_pwm_led_late_resume(struct early_suspend *handler);
-#endif
 
 #define NO_LED_FULL /* to avoid led flickering, never set brightness to FULL */
 
@@ -40,9 +34,6 @@ struct omap_pwm_led {
 	int powered;
 	unsigned int on_period, off_period;
 	enum led_brightness brightness;
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	struct early_suspend  early_suspend;
-#endif
 	atomic_t cached_brightness;
 };
 
@@ -431,12 +422,6 @@ static int omap_pwm_led_probe(struct platform_device *pdev)
 		omap_pwm_led_power_off(led);
 	}
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	led->early_suspend.level   = EARLY_SUSPEND_LEVEL_BLANK_SCREEN - 1;
-	led->early_suspend.suspend = omap_pwm_led_early_suspend;
-	led->early_suspend.resume  = omap_pwm_led_late_resume;
-	register_early_suspend(&led->early_suspend);
-#endif
 	return 0;
 
 error_blink3:
@@ -457,10 +442,6 @@ static int omap_pwm_led_remove(struct platform_device *pdev)
 {
 	struct omap_pwm_led *led = pdev_to_omap_pwm_led(pdev);
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	unregister_early_suspend(&led->early_suspend);
-#endif
-
 	device_remove_file(led->cdev.dev,
 				 &dev_attr_on_period);
 	device_remove_file(led->cdev.dev,
@@ -476,31 +457,7 @@ static int omap_pwm_led_remove(struct platform_device *pdev)
 	return 0;
 }
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void omap_pwm_led_early_suspend(struct early_suspend *handler)
-{
-	struct omap_pwm_led *led;
-
-	led = container_of(handler, struct omap_pwm_led, early_suspend);
-
-	flush_work(&led->work);
-	/* Make sure the led is switched OFF NOW in this current thread!!! */
-	omap_pwm_led_power_off(led);
-
-	led_classdev_suspend(&led->cdev);
-}
-
-static void omap_pwm_led_late_resume(struct early_suspend *handler)
-{
-	struct omap_pwm_led *led;
-
-	led = container_of(handler, struct omap_pwm_led, early_suspend);
-
-	led_classdev_resume(&led->cdev);
-}
-#endif
-
-#if defined(CONFIG_PM) && !defined(CONFIG_HAS_EARLYSUSPEND)
+#if defined(CONFIG_PM)
 static int omap_pwm_led_suspend(struct platform_device *pdev, pm_message_t state)
 {
 	struct omap_pwm_led *led = pdev_to_omap_pwm_led(pdev);
@@ -524,10 +481,8 @@ static int omap_pwm_led_resume(struct platform_device *pdev)
 static struct platform_driver omap_pwm_led_driver = {
 	.probe		= omap_pwm_led_probe,
 	.remove		= omap_pwm_led_remove,
-#ifndef CONFIG_HAS_EARLYSUSPEND
 	.suspend	= omap_pwm_led_suspend,
 	.resume		= omap_pwm_led_resume,
-#endif
 	.driver		= {
 		.name		= "omap_pwm_led",
 		.owner		= THIS_MODULE,
