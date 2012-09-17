@@ -204,7 +204,7 @@ static void boxer_panel_disable(struct omap_dss_device *dssdev)
 			dssdev->platform_disable(dssdev);
 
 		if (regulator_is_enabled(boxer_panel_regulator)) {
-			msleep(500);
+			msleep(250);
 			regulator_disable(boxer_panel_regulator);
 		}
     } else {
