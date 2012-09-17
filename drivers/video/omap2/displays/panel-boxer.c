@@ -203,8 +203,10 @@ static void boxer_panel_disable(struct omap_dss_device *dssdev)
 		if (dssdev->platform_disable)
 			dssdev->platform_disable(dssdev);
 
-		if (regulator_is_enabled(boxer_panel_regulator))
+		if (regulator_is_enabled(boxer_panel_regulator)) {
+			msleep(500);
 			regulator_disable(boxer_panel_regulator);
+		}
     } else {
         printk("%s: attempting to disable panel twice!\n", __FUNCTION__);
         WARN_ON(1);
